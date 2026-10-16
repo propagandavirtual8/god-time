@@ -53,3 +53,9 @@ Renungan dan doa merupakan draf editorial mandiri. Tidak ada klaim bahwa keduany
 ## Verifikasi
 
 `node --test calendar.test.mjs` memeriksa konversi pembanding Hebcal, batas zona waktu, tahun kabisat, navigasi bulan, panjang Hanukkah, Purim, perbedaan diaspora, dan penundaan puasa. Contoh pembanding: 16 Oktober 2026 = 5 Cheshvan 5787; 8 Februari 2027 = 1 Adar I 5787; 11 Maret 2027 = 2 Adar II 5787.
+
+## Menginput dan menjadwalkan pesan bulanan
+
+Buka `/kelola.html`, isi tahun dan bulan Yahudi, judul, ayat, penulis, isi, penerapan, dan doa. Centang Terbitkan, lalu Siapkan & pratinjau pesan. Pilih Salin data & buka GitHub, ganti seluruh isi `messages.json`, dan Commit changes. Vercel memperbarui situs melalui integrasi Git. Pesan terbit dipilih otomatis berdasarkan tahun dan bulan Yahudi hari ini, terpisah dari navigasi kalender. Adar I dan II diperlakukan terpisah. Jika tidak ada pesan cocok, aplikasi menampilkan renungan pengantar yang diberi label.
+
+Formulir tidak menyimpan langsung ke server. Akses tulis tetap menggunakan akun GitHub pemilik repository, tanpa token di browser. Arsip yang sudah ada dimuat dan disertakan; gunakan satu pengelola pada satu waktu dan muat ulang sebelum mengedit agar tidak menimpa pembaruan orang lain. Draf yang di-commit ke repository publik tetap dapat dibaca publik meski tidak tampil di beranda.
