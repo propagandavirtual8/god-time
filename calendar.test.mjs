@@ -1,3 +1,4 @@
+import {selectMessage} from './messages.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {civilDate as d, hebrew, iso, plusDays, todayJakarta, monthDays, shiftMonth, yearMonths, holidays} from './calendar.js';
@@ -46,4 +47,12 @@ test('puasa 9 Av ditunda dari Sabat ke Minggu',()=>{
  assert.equal(plusDays(av,8).getUTCDay(),6);
  assert.ok(!holidays(plusDays(av,8)).some(x=>x.title==='Tisha BeAv'));
  assert.ok(holidays(plusDays(av,9)).some(x=>x.title==='Tisha BeAv'));
+});
+
+test('pesan utama hanya cocok dengan tahun, bulan, dan status terbit',()=>{
+ const entry={year:5787,month:'cheshvan',title:'Pesan bulan ini',body:'Isi pesan',published:true};
+ assert.equal(selectMessage([entry],{year:5787,key:'cheshvan'}),entry);
+ for(const h of [{year:5788,key:'cheshvan'},{year:5787,key:'kislev'}])assert.equal(selectMessage([entry],h),null);
+ assert.equal(selectMessage([{...entry,published:false}],{year:5787,key:'cheshvan'}),null);
+ assert.equal(selectMessage([{...entry,month:'adar1'}],{year:5787,key:'adar2'}),null);
 });
