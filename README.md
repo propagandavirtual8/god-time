@@ -43,7 +43,7 @@ Renungan dan doa merupakan draf editorial mandiri. Tidak ada klaim bahwa keduany
 
 - Konversi memakai kalender Ibrani tetap dari Intl/ICU pada browser modern, tanpa layanan eksternal. Mendukung 12/13 bulan serta panjang Cheshvan dan Kislev yang berubah.
 - Zona acuan tanggal hari ini: Asia/Jakarta (WIB).
-- Setelah matahari terbenam, pengguna mengaktifkan pilihan malam secara manual. Tidak ada perhitungan matahari terbenam, pelacakan lokasi, atau asumsi pukul 18.00.
+- Pergantian hari otomatis mengikuti estimasi matahari terbenam di pusat Jakarta (GMT+07.00), memakai pendekatan persamaan NOAA di `time.js`. Angka ini perkiraan, bukan jadwal ibadah presisi. Pilihan malam tetap dapat diubah manual. Rentang tanggal sipil ditampilkan bersama waktu awal pada petang sebelumnya.
 - Pilihan Israel/diaspora mengatur perbedaan durasi Pesakh, Shavuot, dan Simchat Torah.
 - Penanda meliputi hari raya utama dan beberapa peringatan tradisional, bukan semua hari libur atau jadwal ibadah. Tahun baru Tisyri tidak diberi label Rosh Chodesh biasa.
 - Puasa Tamuz, Tisha BeAv, dan Gedalya yang jatuh Sabat dipindah ke Minggu.
@@ -56,6 +56,6 @@ Renungan dan doa merupakan draf editorial mandiri. Tidak ada klaim bahwa keduany
 
 ## Menginput dan menjadwalkan pesan bulanan
 
-Buka `/kelola.html`, isi tahun dan bulan Yahudi, judul, ayat, penulis, isi, penerapan, dan doa. Centang Terbitkan, lalu Siapkan & pratinjau pesan. Pilih Salin data & buka GitHub, ganti seluruh isi `messages.json`, dan Commit changes. Vercel memperbarui situs melalui integrasi Git. Pesan terbit dipilih otomatis berdasarkan tahun dan bulan Yahudi hari ini, terpisah dari navigasi kalender. Adar I dan II diperlakukan terpisah. Jika tidak ada pesan cocok, aplikasi menampilkan renungan pengantar yang diberi label.
+Halaman pengelola tidak ditautkan di beranda; buka `/kelola.html` langsung. Halaman ini bukan halaman dengan autentikasi tersendiri. Untuk menerbitkan, tetap diperlukan akses tulis GitHub. Isi tahun dan bulan Yahudi, judul, subjudul, bacaan dan teks ayat, penulis, isi, serta ayat hafalan. Centang Terbitkan, lalu Siapkan & pratinjau pesan. Pilih Salin data & buka GitHub, ganti seluruh isi `messages.json`, dan Commit changes. Vercel memperbarui situs melalui integrasi Git. Pesan terbit dipilih otomatis berdasarkan tahun dan bulan Yahudi hari ini, terpisah dari navigasi kalender. Adar I dan II diperlakukan terpisah. Jika tidak ada pesan cocok, aplikasi menampilkan renungan pengantar yang diberi label.
 
 Formulir tidak menyimpan langsung ke server. Akses tulis tetap menggunakan akun GitHub pemilik repository, tanpa token di browser. Arsip yang sudah ada dimuat dan disertakan; gunakan satu pengelola pada satu waktu dan muat ulang sebelum mengedit agar tidak menimpa pembaruan orang lain. Draf yang di-commit ke repository publik tetap dapat dibaca publik meski tidak tampil di beranda.
