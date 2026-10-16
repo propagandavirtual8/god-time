@@ -1,12 +1,17 @@
 import { civilDate, iso, plusDays, todayJakarta, hebrew, monthStart, monthDays, shiftMonth, yearMonths, holidays } from './calendar.js';
 import { months, lessons, globalPrayers, mainSource, tribeSource } from './content.js';
 import { selectMessage } from './messages.js';
+import { sunsetJakarta, afterSunsetJakarta, formatJakartaTime } from './time.js';
 let messageRecords=[];
 function renderMainMessage(){
- const h=hebrew(chosenToday()),p=profile(chosenToday()),entry=selectMessage(messageRecords,h);
- const title=entry?.title||p.title, verse=entry?.verse||p.verse, body=entry?.body||p.reflection, prayer=entry?.prayer||p.prayer;
- $('#message-status').textContent=entry?'Pesan pengelola':'Renungan pengantar';
- $('#monthly-message').innerHTML=`<div class="message-main"><p class="eyebrow">PESAN UTAMA · ${escape(h.name.toUpperCase())} ${h.year}</p><h3>${escape(title)}</h3><p class="verse">${escape(verse)}</p><div class="message-body">${body.split(/\n\s*\n/).map(t=>`<p>${escape(t).replaceAll('\n','<br>')}</p>`).join('')}</div>${entry?.author?`<div class="message-author">${escape(entry.author)}</div>`:'<p class="message-unavailable">Pesan khusus dari pengelola untuk bulan ini belum tersedia. Berikut bahan renungan pengantar.</p>'}</div><div class="message-side"><h4>LANGKAH HARI INI</h4><p>${escape(entry?.application||'Baca rujukan Alkitab di atas. Catat satu hal yang kamu pelajari tentang Tuhan dan satu tindakan kasih yang dapat kamu lakukan.')}</p><h4>DOA PRIBADI</h4><p>${escape(prayer)}</p></div>`;
+ const date=chosenToday(),h=hebrew(date),p=profile(date),entry=selectMessage(messageRecords,h),days=monthDays(date);
+ const title=entry?.title||p.title,verse=entry?.verse||p.verse,body=entry?.body||p.reflection;
+ const range=new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',timeZone:'UTC'});
+ $('#message-status').textContent=entry?'Pesan bulan ini':'Renungan pengantar';
+ $('#monthly-message').innerHTML=`<article class="message-main"><header class="message-heading"><p class="eyebrow">ROSH CHODESH ${escape(h.name.toUpperCase())} ${h.year}</p><p class="message-period">${range.format(days[0])} – ${range.format(days.at(-1))}</p><h3>${escape(title)}</h3>${entry?.subtitle?`<p class="message-subtitle">“${escape(entry.subtitle)}”</p>`:''}</header><p class="verse">Bacaan: ${escape(verse)}</p>${entry?.verseText?`<blockquote class="reading-quote">“${escape(entry.verseText)}”</blockquote>`:''}<div class="message-body">${body.split(/\n\s*\n/).map(t=>`<p>${escape(t).replaceAll('\n','<br>')}</p>`).join('')}</div>${entry?.author?`<p class="message-author">${escape(entry.author)}</p>`:''}</article>`;
+ $('#memory-reference').textContent=entry?.memoryVerse||verse;
+ $('#memory-text').textContent=entry?.memoryText||entry?.verseText||'Baca dan hafalkan bagian firman ini hari ini.';
+ $('#sunset-info').textContent='Estimasi matahari terbenam hari ini: '+formatJakartaTime(sunsetJakarta(todayJakarta()))+' WIB · Jakarta';
 }
 async function loadMessages(){try{const response=await fetch('./messages.json',{cache:'no-store'});if(!response.ok)throw new Error('Data pesan belum tersedia');const data=await response.json();messageRecords=Array.isArray(data.messages)?data.messages:[];}catch{messageRecords=[];}renderMainMessage();}
 
@@ -14,7 +19,7 @@ const $=s=>document.querySelector(s);
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateFmt=new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
 const shortFmt=new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'short',timeZone:'UTC'});
-let civil=todayJakarta(), selected=civil, view=monthStart(selected), mode='israel', afterSunset=false;
+let civil=todayJakarta(), selected=civil, view=monthStart(selected), mode='israel', afterSunset=afterSunsetJakarta(), manualSunset=false;
 const shapes={
  lion:'<path d="M9 12 6 8l5-3 5 2 5-2 5 3-3 4v8l-7 7-7-7Z"/><path d="m12 14 2 1m6-1-2 1m-4 4 2 2 2-2m-2 2v3M5 14l-2 3 3 3m21-6 2 3-3 3"/>',
  sun:'<circle cx="16" cy="16" r="6"/><path d="M16 2v4m0 20v4M2 16h4m20 0h4M6 6l3 3m14 14 3 3M6 26l3-3M23 9l3-3"/>',
@@ -32,7 +37,7 @@ const shapes={
 function icon(name){return `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${shapes[name]||shapes.branch}</svg>`;}
 function profile(d){return months.find(x=>x.key===hebrew(d).base);}
 function chosenToday(){return plusDays(todayJakarta(),afterSunset?1:0);}
-function renderToday(){renderMainMessage();const date=chosenToday(),h=hebrew(date);$('#today-hebrew').textContent=`${h.day} ${h.name} ${h.year}`;$('#today-civil').textContent=dateFmt.format(todayJakarta())+(afterSunset?' · sesudah matahari terbenam':' · tanggal sipil');$('#today-season').textContent=profile(date).season+' di Israel';}
+function renderToday(){renderMainMessage();const date=chosenToday(),h=hebrew(date);$('#today-hebrew').textContent=`${h.day} ${h.name} ${h.year}`;$('#today-civil').textContent=dateFmt.format(todayJakarta())+(afterSunset?' · sesudah matahari terbenam':' · tanggal sipil');$('#today-season').textContent=profile(date).season+' di Israel';$('#after-sunset').checked=afterSunset;}
 function renderCalendar(){
  const h=hebrew(view), days=monthDays(view), p=profile(view), current=iso(chosenToday());
  $('#month-title').textContent=`${h.name} ${h.year}`;
@@ -52,7 +57,11 @@ function renderCalendar(){
  $('#day-events').innerHTML=events.length?events.map(e=>`<article class="event-card"><span class="event-label">${escape(e.kind)}</span><h4>${escape(e.title)}</h4><p>${escape(e.detail)}</p><small>${escape(e.ref)}</small></article>`).join(''):'<div class="empty-event"><strong>Ruang untuk bertumbuh.</strong><p>Tidak ada hari peringatan yang ditandai pada tanggal ini. Kamu tetap dapat membaca kisah dan merenungkan firman untuk bulan pilihan.</p></div>';
  $('#mini-icon').innerHTML=icon(p.icon);$('#mini-month').textContent=h.name;$('#mini-tribe').textContent=`Suku ${p.tribe} · menurut tradisi`;
  const list=yearMonths(view);
- $('#month-buttons').innerHTML=months.map(m=>`<button type="button" class="month-button${p.key===m.key?' active':''}" data-month="${m.key}" aria-pressed="${p.key===m.key}" aria-label="Pelajari ${m.name}, suku ${m.tribe}"><span class="month-index">${String(m.number).padStart(2,'0')}</span>${icon(m.icon)}<strong>${m.name}</strong><span>${m.tribe}</span></button>`).join('');
+ $('#month-buttons').innerHTML=months.map(m=>{
+ const matching=list.filter(d=>hebrew(d).base===m.key);
+ const dateInfo=matching.map(start=>{const end=monthDays(start).at(-1),eve=plusDays(start,-1);return `<small class="month-dates">${matching.length>1?escape(hebrew(start).name)+': ':''}${shortFmt.format(start)}${start.getUTCFullYear()!==end.getUTCFullYear()?` ${start.getUTCFullYear()}`:""} – ${shortFmt.format(end)} ${end.getUTCFullYear()}</small><small class="month-start">Mulai ${shortFmt.format(eve)} · ≈${formatJakartaTime(sunsetJakarta(eve))} WIB</small>`;}).join('');
+ return `<button type="button" class="month-button${p.key===m.key?' active':''}" data-month="${m.key}" aria-pressed="${p.key===m.key}" aria-label="Pelajari ${m.name}, suku ${m.tribe}">${icon(m.icon)}<strong>${m.name}</strong><span>${m.tribe}</span>${dateInfo}</button>`;
+ }).join('');
  let adarControls='';
  if(p.key==='adar'&&list.some(d=>hebrew(d).key==='adar1')) adarControls='<div class="month-controls" style="margin-bottom:15px"><button class="light-button" data-adar="adar1">Buka Adar I</button><button class="light-button" data-adar="adar2">Buka Adar II</button></div>';
  $('#month-profile').innerHTML=`<div><div class="profile-heading"><h3>${escape(h.name)}</h3><span lang="he" dir="rtl">${p.hebrew}</span></div><p class="profile-meta">Bulan ke-${p.number} · ${escape(p.season)} di Israel · sekitar ${p.approx}</p>${adarControls}<p class="profile-summary">${escape(p.summary)}</p><a class="inline-link" href="${p.url}" target="_blank" rel="noopener noreferrer">Rujukan bulan ${p.name} <span aria-hidden="true">↗</span></a></div><div><p class="timeline-title">PERISTIWA & PERINGATAN</p>${p.events.map(e=>`<article class="timeline-item"><small>${escape(e[0])}</small><span class="type-tag">${escape(e[3])}</span><h4>${escape(e[1])}</h4><p>${escape(e[2])}</p></article>`).join('')}</div>`;
@@ -66,9 +75,9 @@ $('#today-button').addEventListener('click',()=>choose(chosenToday()));
 $('#month-buttons').addEventListener('click',e=>{const b=e.target.closest('[data-month]');if(!b)return;const candidates=yearMonths(view).filter(d=>hebrew(d).base===b.dataset.month);choose(candidates.at(-1));});
 $('#month-profile').addEventListener('click',e=>{const b=e.target.closest('[data-adar]');if(b)choose(yearMonths(view).find(d=>hebrew(d).key===b.dataset.adar));});
 $('#date-picker').addEventListener('change',e=>{try{const date=civilDate(e.target.value);if(iso(date)<'1900-01-01'||iso(date)>'2100-12-31')throw new RangeError();civil=date;choose(plusDays(civil,afterSunset?1:0),false);e.target.setCustomValidity('');}catch{e.target.setCustomValidity('Pilih tanggal antara 1 Januari 1900 dan 31 Desember 2100.');e.target.reportValidity();}});
-$('#after-sunset').addEventListener('change',e=>{afterSunset=e.target.checked;choose(plusDays(civil,afterSunset?1:0),false);renderToday();});
+$('#after-sunset').addEventListener('change',e=>{manualSunset=true;afterSunset=e.target.checked;choose(plusDays(civil,afterSunset?1:0),false);renderToday();});
 $('#observance').addEventListener('change',e=>{mode=e.target.value;renderCalendar();});
-$('#prayer-cards').innerHTML=globalPrayers.map((p,i)=>`<article class="prayer-card panel"><span class="prayer-number">0${i+1}</span><h3>${escape(p[0])}</h3><p>${escape(p[1])}</p><small>${escape(p[2])}</small></article>`).join('');
+$('#prayer-cards').innerHTML=globalPrayers.map((p,i)=>`<article class="prayer-card panel"><h3>${escape(p[0])}</h3><p>${escape(p[1])}</p><small>${escape(p[2])}</small></article>`).join('');
 $('#lessons').innerHTML=lessons.map(l=>`<details><summary>${escape(l[0])}</summary><p>${escape(l[1])}</p><small>${escape(l[2])}</small></details>`).join('');
 $('#root-source').href=mainSource;
 $('#source-list').innerHTML=`<p class="source-link-row"><a href="${mainSource}" target="_blank" rel="noopener noreferrer">Hebrew for Christians · Rosh Chodesh</a></p><div class="source-links">${months.map(m=>`<a href="${m.url}" target="_blank" rel="noopener noreferrer">Materi ${m.name} ↗</a>`).join('')}</div><p class="source-link-row"><a href="${tribeSource}" target="_blank" rel="noopener noreferrer">Rujukan tambahan: variasi hubungan bulan–suku</a></p><p class="source-link-row"><a href="https://www.hebcal.com/converter" target="_blank" rel="noopener noreferrer">Hebcal · pembanding konversi tanggal</a></p>`;
@@ -77,5 +86,5 @@ for(const id of ['#source-button','#footer-sources'])$(id).addEventListener('cli
 $('#close-dialog').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
 $('#date-picker').value=iso(civil);renderToday();renderCalendar();loadMessages();
-let dayKey=iso(todayJakarta());
-setInterval(()=>{const next=iso(todayJakarta());if(next!==dayKey){dayKey=next;renderToday();renderCalendar();loadMessages();}},60000);
+let dayKey=iso(todayJakarta())+'|'+afterSunset;
+setInterval(()=>{if(!manualSunset)afterSunset=afterSunsetJakarta();const next=iso(todayJakarta())+'|'+afterSunset;if(next!==dayKey){dayKey=next;renderToday();renderCalendar();loadMessages();}},60000);
