@@ -1,5 +1,15 @@
 import { civilDate, iso, plusDays, todayJakarta, hebrew, monthStart, monthDays, shiftMonth, yearMonths, holidays } from './calendar.js';
 import { months, lessons, globalPrayers, mainSource, tribeSource } from './content.js';
+import { selectMessage } from './messages.js';
+let messageRecords=[];
+function renderMainMessage(){
+ const h=hebrew(chosenToday()),p=profile(chosenToday()),entry=selectMessage(messageRecords,h);
+ const title=entry?.title||p.title, verse=entry?.verse||p.verse, body=entry?.body||p.reflection, prayer=entry?.prayer||p.prayer;
+ $('#message-status').textContent=entry?'Pesan pengelola':'Renungan pengantar';
+ $('#monthly-message').innerHTML=`<div class="message-main"><p class="eyebrow">PESAN UTAMA · ${escape(h.name.toUpperCase())} ${h.year}</p><h3>${escape(title)}</h3><p class="verse">${escape(verse)}</p><div class="message-body">${body.split(/\n\s*\n/).map(t=>`<p>${escape(t).replaceAll('\n','<br>')}</p>`).join('')}</div>${entry?.author?`<div class="message-author">${escape(entry.author)}</div>`:'<p class="message-unavailable">Pesan khusus dari pengelola untuk bulan ini belum tersedia. Berikut bahan renungan pengantar.</p>'}</div><div class="message-side"><h4>LANGKAH HARI INI</h4><p>${escape(entry?.application||'Baca rujukan Alkitab di atas. Catat satu hal yang kamu pelajari tentang Tuhan dan satu tindakan kasih yang dapat kamu lakukan.')}</p><h4>DOA PRIBADI</h4><p>${escape(prayer)}</p></div>`;
+}
+async function loadMessages(){try{const response=await fetch('./messages.json',{cache:'no-store'});if(!response.ok)throw new Error('Data pesan belum tersedia');const data=await response.json();messageRecords=Array.isArray(data.messages)?data.messages:[];}catch{messageRecords=[];}renderMainMessage();}
+
 const $=s=>document.querySelector(s);
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateFmt=new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
@@ -22,7 +32,7 @@ const shapes={
 function icon(name){return `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${shapes[name]||shapes.branch}</svg>`;}
 function profile(d){return months.find(x=>x.key===hebrew(d).base);}
 function chosenToday(){return plusDays(todayJakarta(),afterSunset?1:0);}
-function renderToday(){const date=chosenToday(),h=hebrew(date);$('#today-hebrew').textContent=`${h.day} ${h.name} ${h.year}`;$('#today-civil').textContent=dateFmt.format(todayJakarta())+(afterSunset?' · sesudah matahari terbenam':' · tanggal sipil');$('#today-season').textContent=profile(date).season+' di Israel';}
+function renderToday(){renderMainMessage();const date=chosenToday(),h=hebrew(date);$('#today-hebrew').textContent=`${h.day} ${h.name} ${h.year}`;$('#today-civil').textContent=dateFmt.format(todayJakarta())+(afterSunset?' · sesudah matahari terbenam':' · tanggal sipil');$('#today-season').textContent=profile(date).season+' di Israel';}
 function renderCalendar(){
  const h=hebrew(view), days=monthDays(view), p=profile(view), current=iso(chosenToday());
  $('#month-title').textContent=`${h.name} ${h.year}`;
@@ -46,7 +56,7 @@ function renderCalendar(){
  let adarControls='';
  if(p.key==='adar'&&list.some(d=>hebrew(d).key==='adar1')) adarControls='<div class="month-controls" style="margin-bottom:15px"><button class="light-button" data-adar="adar1">Buka Adar I</button><button class="light-button" data-adar="adar2">Buka Adar II</button></div>';
  $('#month-profile').innerHTML=`<div><div class="profile-heading"><h3>${escape(h.name)}</h3><span lang="he" dir="rtl">${p.hebrew}</span></div><p class="profile-meta">Bulan ke-${p.number} · ${escape(p.season)} di Israel · sekitar ${p.approx}</p>${adarControls}<p class="profile-summary">${escape(p.summary)}</p><a class="inline-link" href="${p.url}" target="_blank" rel="noopener noreferrer">Rujukan bulan ${p.name} <span aria-hidden="true">↗</span></a></div><div><p class="timeline-title">PERISTIWA & PERINGATAN</p>${p.events.map(e=>`<article class="timeline-item"><small>${escape(e[0])}</small><span class="type-tag">${escape(e[3])}</span><h4>${escape(e[1])}</h4><p>${escape(e[2])}</p></article>`).join('')}</div>`;
- $('#monthly-message').innerHTML=`<div class="message-main"><p class="eyebrow">RENUNGAN BULAN ${escape(h.name.toUpperCase())}</p><h3>${escape(p.title)}</h3><p class="verse">${escape(p.verse)}</p><p style="margin-top:19px">${escape(p.reflection)}</p></div><div class="message-side"><h4>LANGKAH HARI INI</h4><p>Baca bagian Alkitab di samping. Catat satu hal yang kamu pelajari tentang Tuhan dan satu tindakan kasih yang dapat kamu lakukan.</p><h4>DOA PRIBADI</h4><p>${escape(p.prayer)}</p></div>`;
+
 }
 function choose(date, updateInput=true){selected=date;view=monthStart(date);if(updateInput){civil=plusDays(date,afterSunset?-1:0);$('#date-picker').value=iso(civil);}renderCalendar();}
 $('#calendar-grid').addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(b)choose(civilDate(b.dataset.date));});
@@ -66,7 +76,6 @@ const dialog=$('#source-dialog');
 for(const id of ['#source-button','#footer-sources'])$(id).addEventListener('click',()=>dialog.showModal());
 $('#close-dialog').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
-$('#date-picker').value=iso(civil);renderToday();renderCalendar();
+$('#date-picker').value=iso(civil);renderToday();renderCalendar();loadMessages();
 let dayKey=iso(todayJakarta());
-setInterval(()=>{const next=iso(todayJakarta());if(next!==dayKey){dayKey=next;renderToday();renderCalendar();}},60000);
-  
+setInterval(()=>{const next=iso(todayJakarta());if(next!==dayKey){dayKey=next;renderToday();renderCalendar();loadMessages();}},60000);
