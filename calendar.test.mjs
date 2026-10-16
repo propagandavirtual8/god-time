@@ -1,3 +1,4 @@
+import {sunsetJakarta,afterSunsetJakarta,hebrewDayJakarta} from './time.js';
 import {selectMessage} from './messages.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -55,4 +56,16 @@ test('pesan utama hanya cocok dengan tahun, bulan, dan status terbit',()=>{
  for(const h of [{year:5788,key:'cheshvan'},{year:5787,key:'kislev'}])assert.equal(selectMessage([entry],h),null);
  assert.equal(selectMessage([{...entry,published:false}],{year:5787,key:'cheshvan'}),null);
  assert.equal(selectMessage([{...entry,month:'adar1'}],{year:5787,key:'adar2'}),null);
+});
+
+test('tanggal Yahudi berganti tepat pada estimasi terbenam Jakarta',()=>{
+ const date=d('2026-10-11'),sunset=sunsetJakarta(date);
+ assert.equal(afterSunsetJakarta(new Date(+sunset-1)),false);
+ assert.equal(afterSunsetJakarta(sunset),true);
+ assert.equal(hebrew(hebrewDayJakarta(new Date(+sunset-1))).key,'tisyri');
+ assert.equal(hebrew(hebrewDayJakarta(sunset)).key,'cheshvan');
+ assert.equal(hebrew(hebrewDayJakarta(sunset)).day,1);
+});
+test('estimasi terbenam Jakarta selalu dalam rentang sore yang wajar',()=>{
+ for(let month=1;month<=12;month++){const date=d('2026-'+String(month).padStart(2,'0')+'-15'),sunset=sunsetJakarta(date),hour=(sunset.getUTCHours()+7)%24;assert.ok(hour>=17&&hour<=18);}
 });
