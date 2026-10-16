@@ -1,0 +1,12 @@
+{
+  "name": "god-time",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node serve.mjs",
+    "build": "node build.mjs",
+    "test": "node --test calendar.test.mjs"
+  },
+  "engines": { "node": ">=22" }
+}
