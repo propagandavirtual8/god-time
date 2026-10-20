@@ -4,23 +4,25 @@ Aplikasi pembelajaran kalender Yahudi dalam bahasa Indonesia. Versi awal mencaku
 
 ## Menjalankan
 
-Memerlukan Node.js 22 atau lebih baru. Tidak ada dependensi pihak ketiga yang perlu diinstal.
+Memerlukan Node.js 22 atau lebih baru dan pnpm. SDK Supabase serta alat build/test dikunci melalui `pnpm-lock.yaml`.
 
 ```sh
-npm run dev
-npm test
-npm run build
+pnpm install --frozen-lockfile
+pnpm run dev
+pnpm test
+pnpm run test:browser
+pnpm run build
 ```
 
-Jika npm belum tersedia, gunakan `node serve.mjs`, `node --test calendar.test.mjs`, dan `node build.mjs`. Buka http://127.0.0.1:4173 untuk pratinjau.
+Setelah dependensi terinstal, perintah Node yang setara juga tersedia: `node serve.mjs`, `node --test calendar.test.mjs tests/*.test.mjs`, dan `node build.mjs`. Buka http://127.0.0.1:4173 untuk pratinjau.
 
 ## Deploy melalui GitHub dan Vercel
 
 1. Import repository `propagandavirtual8/god-time` pada Vercel.
 2. Framework Preset: **Other**; Root Directory: root repository.
-3. Build Command: `npm run build`; Output Directory: `dist` (tersedia juga di `vercel.json`).
-4. Tidak memerlukan environment variable, database, atau API key.
-5. Deploy. Pembaruan pada branch produksi akan mengikuti integrasi Git Vercel.
+3. Build Command: `pnpm run build`; Output Directory: `dist` (tersedia juga di `vercel.json`).
+4. Ikuti [panduan Supabase](IMPLEMENTASI-SUPABASE.md): tinjau migrasi, impor data lama, konfigurasi Google OAuth dan kedua environment publik.
+5. Uji di staging dan sepakati aktivasi produksi sebelum push/deploy. Domain produksi yang dikonfirmasi: `https://ehop-godtime.vercel.app`.
 
 ## Mengubah materi
 
@@ -56,6 +58,10 @@ Renungan dan doa merupakan draf editorial mandiri. Tidak ada klaim bahwa keduany
 
 ## Menginput dan menjadwalkan pesan bulanan
 
-Halaman pengelola tidak ditautkan di beranda; buka `/kelola.html` langsung. Halaman ini bukan halaman dengan autentikasi tersendiri. Untuk menerbitkan, tetap diperlukan akses tulis GitHub. Isi tahun dan bulan Yahudi, judul, subjudul, bacaan dan teks ayat, penulis, isi, serta ayat hafalan. Centang Terbitkan, lalu Siapkan & pratinjau pesan. Pilih Salin data & buka GitHub, ganti seluruh isi `messages.json`, dan Commit changes. Vercel memperbarui situs melalui integrasi Git. Pesan terbit dipilih otomatis berdasarkan tahun dan bulan Yahudi hari ini, terpisah dari navigasi kalender. Adar I dan II diperlakukan terpisah. Jika tidak ada pesan cocok, aplikasi menampilkan renungan pengantar yang diberi label.
+Buka `/kelola.html`, masuk dengan Google, lalu kelola pesan menggunakan akun admin. Role user tidak mendapat akses editor atau izin menulis database. Akun baru selalu menjadi user; pemilik proyek memberikan admin melalui SQL yang ditinjau. Pilih tahun/bulan, isi pesan, pratinjau, lalu Simpan pesan. Hilangkan centang Terbitkan untuk menyimpan draf. Pesan terjadwal hanya tersedia publik selama bulan Yahudi yang dipilih; gunakan Adar I/II pada tahun kabisat.
 
-Formulir tidak menyimpan langsung ke server. Akses tulis tetap menggunakan akun GitHub pemilik repository, tanpa token di browser. Arsip yang sudah ada dimuat dan disertakan; gunakan satu pengelola pada satu waktu dan muat ulang sebelum mengedit agar tidak menimpa pembaruan orang lain. Draf yang di-commit ke repository publik tetap dapat dibaca publik meski tidak tampil di beranda.
+CRUD langsung ke Supabase menggantikan ekspor JSON melalui GitHub. Perubahan dari tab admin lain diperiksa dengan revision agar tidak tertimpa. Draf hanya dapat dibaca admin melalui RLS. Sumber `messages.json` tidak diubah; impor lama tersedia sebagai SQL yang hanya menambahkan periode kosong. Jangan memasukkan draf rahasia ke repository publik.
+
+Beranda membaca database memakai client anonim terpisah. Jika database kosong atau tidak tersedia, renungan pengantar dari `content.js` tetap tampil. Snapshot JSON lama hanya dipakai jika konfigurasi Supabase benar-benar kosong. Tampilan kalender dan materi tetap dipertahankan.
+
+Lihat [catatan implementasi, konfigurasi Google, migrasi dan aktivasi admin](IMPLEMENTASI-SUPABASE.md) serta [laporan uji](LAPORAN-UJI.md). Perubahan ini belum dijalankan pada database produksi atau dideploy.
