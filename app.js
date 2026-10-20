@@ -1,6 +1,7 @@
 import { civilDate, iso, plusDays, todayJakarta, hebrew, monthStart, monthDays, shiftMonth, yearMonths, holidays } from './calendar.js';
 import { months, lessons, globalPrayers, mainSource, tribeSource } from './content.js';
-import { selectMessage } from './messages.js';
+import { selectMessage, loadPublicMessage } from './messages.js';
+import { publicClient } from './supabase-client.js';
 import { sunsetJakarta, afterSunsetJakarta, formatJakartaTime } from './time.js';
 let messageRecords=[];
 function renderMainMessage(){
@@ -13,7 +14,13 @@ function renderMainMessage(){
  $('#memory-text').textContent=entry?.memoryText||entry?.verseText||'Baca dan hafalkan bagian firman ini hari ini.';
  $('#sunset-info').textContent='Estimasi matahari terbenam hari ini: '+formatJakartaTime(sunsetJakarta(todayJakarta()))+' WIB · Jakarta';
 }
-async function loadMessages(){try{const response=await fetch('./messages.json',{cache:'no-store'});if(!response.ok)throw new Error('Data pesan belum tersedia');const data=await response.json();messageRecords=Array.isArray(data.messages)?data.messages:[];}catch{messageRecords=[];}renderMainMessage();}
+let messageRequest=0;
+async function loadMessages(){
+ const request=++messageRequest,h=hebrew(chosenToday());
+ const {entry}=await loadPublicMessage({client:publicClient(),h});
+ if(request!==messageRequest)return;
+ messageRecords=entry?[entry]:[];renderMainMessage();
+}
 
 const $=s=>document.querySelector(s);
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -75,7 +82,7 @@ $('#today-button').addEventListener('click',()=>choose(chosenToday()));
 $('#month-buttons').addEventListener('click',e=>{const b=e.target.closest('[data-month]');if(!b)return;const candidates=yearMonths(view).filter(d=>hebrew(d).base===b.dataset.month);choose(candidates.at(-1));});
 $('#month-profile').addEventListener('click',e=>{const b=e.target.closest('[data-adar]');if(b)choose(yearMonths(view).find(d=>hebrew(d).key===b.dataset.adar));});
 $('#date-picker').addEventListener('change',e=>{try{const date=civilDate(e.target.value);if(iso(date)<'1900-01-01'||iso(date)>'2100-12-31')throw new RangeError();civil=date;choose(plusDays(civil,afterSunset?1:0),false);e.target.setCustomValidity('');}catch{e.target.setCustomValidity('Pilih tanggal antara 1 Januari 1900 dan 31 Desember 2100.');e.target.reportValidity();}});
-$('#after-sunset').addEventListener('change',e=>{manualSunset=true;afterSunset=e.target.checked;choose(plusDays(civil,afterSunset?1:0),false);renderToday();});
+$('#after-sunset').addEventListener('change',e=>{manualSunset=true;afterSunset=e.target.checked;choose(plusDays(civil,afterSunset?1:0),false);renderToday();loadMessages();});
 $('#observance').addEventListener('change',e=>{mode=e.target.value;renderCalendar();});
 $('#prayer-cards').innerHTML=globalPrayers.map((p,i)=>`<article class="prayer-card panel"><h3>${escape(p[0])}</h3><p>${escape(p[1])}</p><small>${escape(p[2])}</small></article>`).join('');
 $('#lessons').innerHTML=lessons.map(l=>`<details><summary>${escape(l[0])}</summary><p>${escape(l[1])}</p><small>${escape(l[2])}</small></details>`).join('');
@@ -87,4 +94,4 @@ $('#close-dialog').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
 $('#date-picker').value=iso(civil);renderToday();renderCalendar();loadMessages();
 let dayKey=iso(todayJakarta())+'|'+afterSunset;
-setInterval(()=>{if(!manualSunset)afterSunset=afterSunsetJakarta();const next=iso(todayJakarta())+'|'+afterSunset;if(next!==dayKey){dayKey=next;renderToday();renderCalendar();loadMessages();}},60000);
+setInterval(()=>{if(!manualSunset)afterSunset=afterSunsetJakarta();const next=iso(todayJakarta())+'|'+afterSunset;if(next!==dayKey){dayKey=next;messageRecords=[];renderToday();renderCalendar();}loadMessages();},60000);
