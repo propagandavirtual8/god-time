@@ -3,8 +3,8 @@ import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 await import('./build.mjs');
 const root = resolve('dist');
-const allowed = new Set(['index.html','kelola.html','app.js','kelola.js','styles.css','favicon.svg','messages.json']);
-const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.svg':'image/svg+xml', '.json':'application/json; charset=utf-8' };
+const allowed = new Set(['index.html','kelola.html','app.js','kelola.js','styles.css','favicon.svg','logo-ehop.png','messages.json']);
+const mime = { '.png':'image/png', '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.svg':'image/svg+xml', '.json':'application/json; charset=utf-8' };
 http.createServer(async (req, res) => {
   try {
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
