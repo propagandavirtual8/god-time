@@ -8,7 +8,7 @@ await build({ entryPoints: ['./app.js', './kelola.js'], tsconfigRaw: {}, bundle:
   outdir: 'dist', plugins: [{ name: 'public-config', setup(build) {
     build.onLoad({ filter: /[\\/]config\.js$/ }, () => ({ contents: `export const config = ${JSON.stringify(config)};`, loader: 'js' }));
   } }] });
-for (const file of ['index.html', 'styles.css', 'favicon.svg', 'kelola.html']) await copyFile(file, `dist/${file}`);
+for (const file of ['index.html', 'styles.css', 'favicon.svg', 'logo-ehop.png', 'kelola.html']) await copyFile(file, `dist/${file}`);
 const legacy = JSON.parse(await readFile('messages.json', 'utf8'));
 await writeFile('dist/messages.json', JSON.stringify({ version: 1, messages: config.url ? [] : legacy.messages.filter(m => m.published === true) }));
 console.log(`Build selesai: dist/ (${config.url ? 'Supabase' : 'arsip publik lokal'})`);

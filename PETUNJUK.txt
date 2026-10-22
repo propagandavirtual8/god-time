@@ -1,0 +1,2 @@
+Paket logo saja untuk versi main 49d1e46. Logo asli disalin tanpa modifikasi.
+Buat branch baru dari main; unggah lima file: index.html, styles.css, build.mjs, serve.mjs, logo-ehop.png. Periksa Preview sebelum merge. Jangan gunakan untuk menimpa branch login baru; versi login lokal sudah mendapat logo yang sama. Tidak mengubah SQL atau data pesan.
