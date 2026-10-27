@@ -95,3 +95,6 @@ dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoun
 $('#date-picker').value=iso(civil);renderToday();renderCalendar();loadMessages();
 let dayKey=iso(todayJakarta())+'|'+afterSunset;
 setInterval(()=>{if(!manualSunset)afterSunset=afterSunsetJakarta();const next=iso(todayJakarta())+'|'+afterSunset;if(next!==dayKey){dayKey=next;messageRecords=[];renderToday();renderCalendar();}loadMessages();},60000);
+
+import {startLayout} from './layout-runtime.js';
+startLayout();

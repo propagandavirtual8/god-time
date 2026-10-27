@@ -1,0 +1,23 @@
+/* Shared by public homepage and the actual editor canvas. */
+.gt-layout-page{display:flex;flex-direction:column;align-items:stretch}
+.gt-layout-node{position:relative;min-width:0;max-width:100%;box-sizing:border-box;background-size:cover;background-position:center}
+.gt-layout-node>.wrap{width:100%;max-width:none}
+.gt-container{display:flex;flex-direction:column}
+.gt-heading{font:inherit;font-size:inherit;line-height:1.25;font-weight:700}
+
+.gt-text{white-space:pre-wrap}.gt-image{display:block;max-width:100%;width:100%;height:auto;border-radius:inherit}
+.gt-divider{border:0;border-top:1px solid currentColor;opacity:.25;margin:12px 0}
+.gt-button .primary-button{margin:0}.gt-image-empty{padding:60px 20px;text-align:center;background:#f1edf5;color:#776880;border:1px dashed #c9bacf}
+.gt-edit-mode .gt-layout-node{outline:1px dashed #ae8dbe60;outline-offset:-1px;min-height:30px;cursor:pointer}
+.gt-edit-mode .gt-layout-node:hover{outline:2px solid #a855f7;outline-offset:-2px}
+.gt-edit-mode .gt-selected{outline:2px solid #a855f7;outline-offset:-2px}
+.gt-edit-mode .gt-selected::before{content:attr(data-layout-label);position:absolute;left:0;top:0;background:#9333ea;color:white;font:11px Arial,sans-serif;padding:3px 10px;z-index:15;border-radius:0 0 4px 0;pointer-events:none}
+.gt-edit-mode .gt-layout-node :is(a,button,input,select,summary){pointer-events:none}
+.gt-edit-mode .gt-drop{outline:4px solid #d946ef;background-color:#f5eaff}
+.calendar-layout>*{min-width:0}
+@media(max-width:360px){.calendar-toolbar{flex-wrap:wrap}.calendar-toolbar>div{min-width:0}.month-controls{flex-shrink:0}.calendar-cell .civil-number{font-size:7px}}
+@media(max-width:740px){.site-header .brand-ehop{max-width:184px}}
+
+.gt-layout-node{border-style:solid;border-width:0}
+.gt-today>.hero{display:flex;flex-direction:column-reverse;gap:0}
+.gt-heading{margin:0;letter-spacing:normal}
